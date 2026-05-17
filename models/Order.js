@@ -19,7 +19,10 @@ const orderSchema = new mongoose.Schema(
       default: true,
       index: true,
     },
-
+    WorkLog: {
+      type: String,
+      default: "",
+    },
     orderDate: {
       type: String,
     },

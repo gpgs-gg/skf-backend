@@ -42,7 +42,10 @@ const customerSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-
+  WorkLog: {
+      type: String,
+      default: "",
+    },
     // 🔥 Useful Business Fields
 
     // customerType: {
