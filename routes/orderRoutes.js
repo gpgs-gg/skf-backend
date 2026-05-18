@@ -1,5 +1,5 @@
 import express from "express";
-
+import { verifyJWT } from "../middleware/verifyJWT.js";
 import {
   createOrder,
   getOrders,
@@ -13,24 +13,24 @@ import {
 const router = express.Router();
 
 // CREATE ORDER
-router.post("/", createOrder);
+router.post("/", verifyJWT, createOrder);
 //http://localhost:5000/api/orders
 
 // GET ALL ORDERS
-router.get("/", getOrders);
+router.get("/", verifyJWT, getOrders);
 // GET http://localhost:5000/api/orders
 // GET SINGLE ORDER
-router.get("/:id", getOrderById);
+router.get("/:id", verifyJWT, getOrderById);
 
 // UPDATE ORDER
-router.put("/:id", updateOrder);
+router.put("/:id", verifyJWT, updateOrder);
 
 // DELETE ORDER
-router.delete("/:id", deleteOrder);
+router.delete("/:id", verifyJWT, deleteOrder);
 // UPDATE PRODUCT
-router.put("/:orderId/products/:productId", updateOrderProduct);
+router.put("/:orderId/products/:productId", verifyJWT, updateOrderProduct);
 
 // DELETE PRODUCT
-router.delete("/:orderId/products/:productId", deleteOrderProduct);
+router.delete("/:orderId/products/:productId", verifyJWT, deleteOrderProduct);
 
 export default router;
