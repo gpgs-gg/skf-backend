@@ -7,12 +7,12 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     // get token from cookies
     const token = req.cookies?.accessToken;
 
-    if (!token) {
-      return res.status(200).json({
-        success: true,
-        message: "No Record Found",
-      });
-    }
+if (!token) {
+  return res.status(401).json({
+    success: false,
+    message: "Unauthorized",
+  });
+}
 
     // verify token
     const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);

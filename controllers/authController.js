@@ -1,10 +1,26 @@
+
+
 import { User } from "../models/User.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
+
+/* =========================
+   COOKIE CONFIG (IMPORTANT)
+   VPS HTTP = secure:false
+   HTTPS = secure:true
+========================= */
+const options = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+};
+
+/* =========================
+   REGISTER
+========================= */
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
-  // Validation
   if (!name || !email || !password) {
     return res.status(400).json({
       success: false,
@@ -12,7 +28,6 @@ const registerUser = asyncHandler(async (req, res) => {
     });
   }
 
-  // Existing user
   const existingUser = await User.findOne({ email });
 
   if (existingUser) {
@@ -22,15 +37,10 @@ const registerUser = asyncHandler(async (req, res) => {
     });
   }
 
-  // Create user
-  const user = await User.create({
-    name,
-    email,
-    password,
-  });
+  const user = await User.create({ name, email, password });
 
   const createdUser = await User.findById(user._id).select(
-    "-password -refreshToken",
+    "-password -refreshToken"
   );
 
   return res.status(201).json({
@@ -40,29 +50,35 @@ const registerUser = asyncHandler(async (req, res) => {
   });
 });
 
-export default registerUser;
-
+/* =========================
+   LOGIN
+========================= */
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  //! check username and password are thier
+
   if (!email || !password) {
     return res.status(400).json({
       success: false,
       message: "Email and password are required",
     });
   }
-  //! find the user is present in database
 
-  // user = await User.findOne()
-  const user = await User.findOne({ email });
 
-  if (!user) {
-    return res.status(401).json({
-      success: false,
-      message: "Invalid credentials",
-    });
-  }
+const user = await User.findOne({ email });
 
+if (!user) {
+  return res.status(401).json({
+    success: false,
+    message: "Invalid credentials",
+  });
+}
+
+if (!user.isActive) {
+  return res.status(403).json({
+    success: false,
+    message: "Your account is inactive. Contact admin.",
+  });
+}
   const isPasswordValid = await user.isPasswordCorrect(password);
 
   if (!isPasswordValid) {
@@ -71,36 +87,37 @@ const loginUser = asyncHandler(async (req, res) => {
       message: "Invalid credentials",
     });
   }
-  // make access and refressh token generate it
+
   const accessToken = user.generateAccessToken();
   const refreshToken = user.generateRefreshToken();
 
   user.refreshToken = refreshToken;
-
   await user.save({ validateBeforeSave: false });
 
-  const options = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-  };
-
   const loggedInUser = await User.findById(user._id).select(
-    "-password -refreshToken",
+    "-password -refreshToken"
   );
 
   return res
     .status(200)
-    .cookie("refreshToken", refreshToken, options)
-    .cookie("accessToken", accessToken, options)
+    .cookie("accessToken", accessToken, {
+      ...options,
+     maxAge: 24 * 60 * 60 * 1000
+    })
+    .cookie("refreshToken", refreshToken, {
+      ...options,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    })
     .json({
       success: true,
-      message: "User logged In Successfully.",
-      accessToken,
-      // refreshToken,
+      message: "Login successful",
       user: loggedInUser,
     });
 });
+
+/* =========================
+   LOGOUT
+========================= */
 const logoutUser = asyncHandler(async (req, res) => {
   if (!req.user?._id) {
     return res.status(401).json({
@@ -109,22 +126,9 @@ const logoutUser = asyncHandler(async (req, res) => {
     });
   }
 
-  await User.findByIdAndUpdate(
-    req.user._id,
-    {
-      $unset: {
-        refreshToken: 1,
-      },
-    },
-    {
-      new: true,
-    },
-  );
-
-  const options = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-  };
+  await User.findByIdAndUpdate(req.user._id, {
+    $unset: { refreshToken: 1 },
+  });
 
   return res
     .status(200)
@@ -136,31 +140,38 @@ const logoutUser = asyncHandler(async (req, res) => {
     });
 });
 
+/* =========================
+   REFRESH TOKEN
+========================= */
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken = req.cookies?.refreshToken;
 
   if (!incomingRefreshToken) {
     return res.status(401).json({
-      message: "Unauthorized Reqiest",
+      success: false,
+      message: "Unauthorized request",
     });
   }
+
   try {
-    const decodedToken = jwt.verify(
+    const decoded = jwt.verify(
       incomingRefreshToken,
-      process.env.REFRESH_TOKEN_SECRET,
+      process.env.REFRESH_TOKEN_SECRET
     );
 
-    const user = await User.findById(decodedToken?._id);
+    const user = await User.findById(decoded?._id);
 
     if (!user) {
       return res.status(401).json({
+        success: false,
         message: "Invalid refresh token",
       });
     }
 
-    if (incomingRefreshToken !== user?.refreshToken) {
+    if (incomingRefreshToken !== user.refreshToken) {
       return res.status(401).json({
-        message: "Refresh token is expired or reused",
+        success: false,
+        message: "Refresh token expired or reused",
       });
     }
 
@@ -168,41 +179,83 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     const newRefreshToken = user.generateRefreshToken();
 
     user.refreshToken = newRefreshToken;
-
     await user.save({ validateBeforeSave: false });
-
-    const options = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-    };
 
     return res
       .status(200)
-      .cookie("accessToken", newAccessToken, options)
-      .cookie("refreshToken", newRefreshToken, options)
+      .cookie("accessToken", newAccessToken, {
+        ...options,
+    maxAge: 24 * 60 * 60 * 1000
+      })
+      .cookie("refreshToken", newRefreshToken, {
+        ...options,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
       .json({
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
-        message: "Access token refreshed successfully",
+        success: true,
+        message: "Token refreshed successfully",
       });
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: error?.message,
+      message: "Invalid refresh token",
     });
   }
 });
 
+/* =========================
+   GET CURRENT USER
+========================= */
 const getCurrentUser = asyncHandler(async (req, res) => {
   return res.status(200).json({
     success: true,
     user: req.user,
   });
 });
+
+// UPDATE PASSWORD ONLY FOR ACTIVE USER
+const updatePassword = asyncHandler(async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  if (!email || !newPassword) {
+    return res.status(400).json({
+      success: false,
+      message: "Email and new password are required",
+    });
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
+
+  // Only active users
+  if (!user.isActive) {
+    return res.status(403).json({
+      success: false,
+      message: "Inactive users cannot update password",
+    });
+  }
+
+  user.password = newPassword;
+
+  await user.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "Password updated successfully",
+  });
+});
+
 export {
   registerUser,
   loginUser,
-  refreshAccessToken,
   logoutUser,
+  refreshAccessToken,
   getCurrentUser,
+  updatePassword,
 };
