@@ -1,6 +1,14 @@
 import mongoose from "mongoose";
 import orderedProductSchema from "../schemas/orderedProductSchema.js";
 
+// ✅ ROOM SUBSCHEMA
+const roomSchema = new mongoose.Schema({
+  roomName: String,
+  roomType: String,
+
+  products: [orderedProductSchema],
+});
+
 const orderSchema = new mongoose.Schema(
   {
     orderNo: {
@@ -14,22 +22,20 @@ const orderSchema = new mongoose.Schema(
       ref: "Customer",
       required: true,
     },
+
     isActive: {
       type: Boolean,
       default: true,
       index: true,
     },
+
     WorkLog: {
       type: String,
       default: "",
     },
-    orderDate: {
-      type: String,
-    },
 
-    deliveryDate: {
-      type: String,
-    },
+    orderDate: String,
+    deliveryDate: String,
 
     paymentStatus: {
       type: String,
@@ -50,53 +56,23 @@ const orderSchema = new mongoose.Schema(
       default: "Open",
     },
 
-    staffAssigned: {
-      type: String,
-      default: "",
-    },
+    staffAssigned: String,
 
-    advancePayment: {
-      type: Number,
-      default: 0,
-    },
+    advancePayment: { type: Number, default: 0 },
+    receivedAmount: { type: Number, default: 0 },
+    dueAmount: { type: Number, default: 0 },
+    discount: { type: Number, default: 0 },
+    totalAmount: { type: Number, default: 0 },
 
-    receivedAmount: {
-      type: Number,
-      default: 0,
-    },
+    notes: String,
 
-    dueAmount: {
-      type: Number,
-      default: 0,
-    },
-
-    discount: {
-      type: Number,
-      default: 0,
-    },
-
-    totalAmount: {
-      type: Number,
-      default: 0,
-    },
-
-    notes: {
-      type: String,
-      default: "",
-    },
-
-    // PRODUCTS
-    products: [orderedProductSchema],
+    // ✅ rooms now have _id automatically
+    rooms: [roomSchema],
   },
-  {
-    timestamps: true,
-  },
+  { timestamps: true },
 );
 
-export default mongoose.model("Order", orderSchema);
-
-// // models/Order.js
-
+export default mongoose.model("SKFOrder", orderSchema);
 // import mongoose from "mongoose";
 // import orderedProductSchema from "../schemas/orderedProductSchema.js";
 
@@ -113,7 +89,15 @@ export default mongoose.model("Order", orderSchema);
 //       ref: "Customer",
 //       required: true,
 //     },
-
+//     isActive: {
+//       type: Boolean,
+//       default: true,
+//       index: true,
+//     },
+//     WorkLog: {
+//       type: String,
+//       default: "",
+//     },
 //     orderDate: {
 //       type: String,
 //     },
@@ -130,11 +114,33 @@ export default mongoose.model("Order", orderSchema);
 
 //     orderStatus: {
 //       type: String,
-//       enum: ["Pending", "Processing", "Completed", "Delivered", "Cancelled"],
-//       default: "Pending",
+//       enum: [
+//         "Open",
+//         "Pending",
+//         "Processing",
+//         "Completed",
+//         "Delivered",
+//         "Cancelled",
+//       ],
+//       default: "Open",
+//     },
+
+//     staffAssigned: {
+//       type: String,
+//       default: "",
 //     },
 
 //     advancePayment: {
+//       type: Number,
+//       default: 0,
+//     },
+
+//     receivedAmount: {
+//       type: Number,
+//       default: 0,
+//     },
+
+//     dueAmount: {
 //       type: Number,
 //       default: 0,
 //     },
@@ -149,9 +155,12 @@ export default mongoose.model("Order", orderSchema);
 //       default: 0,
 //     },
 
-//     notes: String,
+//     notes: {
+//       type: String,
+//       default: "",
+//     },
 
-//     // 🔥 Products inside order
+//     // PRODUCTS
 //     products: [orderedProductSchema],
 //   },
 //   {

@@ -1,5 +1,3 @@
-
-
 import { User } from "../models/User.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
@@ -40,7 +38,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const user = await User.create({ name, email, password });
 
   const createdUser = await User.findById(user._id).select(
-    "-password -refreshToken"
+    "-password -refreshToken",
   );
 
   return res.status(201).json({
@@ -63,22 +61,21 @@ const loginUser = asyncHandler(async (req, res) => {
     });
   }
 
+  const user = await User.findOne({ email });
 
-const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid credentials",
+    });
+  }
 
-if (!user) {
-  return res.status(401).json({
-    success: false,
-    message: "Invalid credentials",
-  });
-}
-
-if (!user.isActive) {
-  return res.status(403).json({
-    success: false,
-    message: "Your account is inactive. Contact admin.",
-  });
-}
+  if (!user.isActive) {
+    return res.status(403).json({
+      success: false,
+      message: "Your account is inactive. Contact admin.",
+    });
+  }
   const isPasswordValid = await user.isPasswordCorrect(password);
 
   if (!isPasswordValid) {
@@ -95,18 +92,18 @@ if (!user.isActive) {
   await user.save({ validateBeforeSave: false });
 
   const loggedInUser = await User.findById(user._id).select(
-    "-password -refreshToken"
+    "-password -refreshToken",
   );
 
   return res
     .status(200)
     .cookie("accessToken", accessToken, {
       ...options,
-     maxAge: 24 * 60 * 60 * 1000
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     })
     .cookie("refreshToken", refreshToken, {
       ...options,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
     })
     .json({
       success: true,
@@ -156,7 +153,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   try {
     const decoded = jwt.verify(
       incomingRefreshToken,
-      process.env.REFRESH_TOKEN_SECRET
+      process.env.REFRESH_TOKEN_SECRET,
     );
 
     const user = await User.findById(decoded?._id);
@@ -185,11 +182,11 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       .status(200)
       .cookie("accessToken", newAccessToken, {
         ...options,
-    maxAge: 24 * 60 * 60 * 1000
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .cookie("refreshToken", newRefreshToken, {
         ...options,
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        maxAge: 15 * 24 * 60 * 60 * 1000,
       })
       .json({
         success: true,

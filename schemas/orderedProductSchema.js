@@ -37,7 +37,8 @@ const orderedProductSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-
+    collectionName: String,
+    companyName: String,
     orderStatus: {
       type: String,
       enum: [
@@ -59,6 +60,21 @@ const orderedProductSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed,
       default: {},
     },
+    attachments: [
+      {
+        url: String,
+        public_id: String,
+        originalName: String,
+        type: {
+          type: String, // image | pdf | video | other
+          default: "image",
+        },
+        uploadedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   {
     timestamps: true,

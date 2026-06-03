@@ -7,8 +7,10 @@ import connectDB from "./config/db.config.js";
 import customerRoutes from "./routes/customerRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
-import otpRoutes from "./routes/otpRoutes.js"
+import otpRoutes from "./routes/otpRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 import globalErrorHandler from "./middleware/errorMiddleware.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
 import cookieParser from "cookie-parser";
 const app = express();
 
@@ -27,7 +29,7 @@ app.use(
       "https://sadgurukrupafurnishing.in",
     ],
     credentials: true,
-  })
+  }),
 );
 
 app.use(express.json());
@@ -37,9 +39,11 @@ app.use(cookieParser());
    ROUTES DECLARATION
 ========================= */
 app.use("/api/auth", authRoutes);
-app.use("/api/otp", otpRoutes)
+app.use("/api/otp", otpRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/categories", categoryRoutes);
 
 /* =========================
    404 HANDLER
