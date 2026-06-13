@@ -16,21 +16,7 @@ import {
 } from "../controllers/orderController.js";
 
 const router = express.Router();
-router.get("/cloudinary-upload-test", async (req, res) => {
-  try {
-    const result = await cloudinary.uploader.upload(
-      "https://res.cloudinary.com/demo/image/upload/sample.jpg",
-      {
-        folder: "products",
-      },
-    );
 
-    res.json(result);
-  } catch (err) {
-    console.dir(err, { depth: null });
-    res.status(500).json(err);
-  }
-});
 // ORDERS
 router.post(
   "/",

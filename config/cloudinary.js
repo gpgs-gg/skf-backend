@@ -1,9 +1,9 @@
 import { v2 as cloudinary } from "cloudinary";
 
-console.log("=== CLOUDINARY INIT DEBUG ===");
-console.log("CLOUD_NAME:", process.env.CLOUDINARY_CLOUD_NAME);
-console.log("API_KEY:", process.env.CLOUDINARY_API_KEY);
-console.log("API_SECRET exists:", !!process.env.CLOUDINARY_API_SECRET);
+// console.log("=== CLOUDINARY INIT DEBUG ===");
+// console.log("CLOUD_NAME:", process.env.CLOUDINARY_CLOUD_NAME);
+// console.log("API_KEY:", process.env.CLOUDINARY_API_KEY);
+// console.log("API_SECRET exists:", !!process.env.CLOUDINARY_API_SECRET);
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
