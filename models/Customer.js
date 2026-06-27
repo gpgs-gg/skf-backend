@@ -42,10 +42,18 @@ const customerSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+<<<<<<< HEAD
   WorkLog: {
       type: String,
       default: "",
     },
+=======
+    WorkLog: {
+      type: String,
+      default: "",
+    },
+
+>>>>>>> cd6a24d38729bbd686f95333b88749ea8b56c878
     // 🔥 Useful Business Fields
 
     // customerType: {

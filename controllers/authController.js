@@ -145,8 +145,12 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
   if (!incomingRefreshToken) {
     return res.status(401).json({
+<<<<<<< HEAD
       success: false,
       message: "Unauthorized request",
+=======
+      message: "Unauthorized Request",
+>>>>>>> cd6a24d38729bbd686f95333b88749ea8b56c878
     });
   }
 
