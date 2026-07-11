@@ -2,7 +2,7 @@
 .env
 .env.*
 !.env.example
-
+uploads/
 # Logs
 logs
 *.log

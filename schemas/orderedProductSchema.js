@@ -6,6 +6,10 @@ const orderedProductSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    subCategory: {
+      type: String,
+      default: "",
+    },
 
     name: String,
 

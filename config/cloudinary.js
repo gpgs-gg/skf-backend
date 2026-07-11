@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
-
+import dotenv from "dotenv";
+dotenv.config();
 // console.log("=== CLOUDINARY INIT DEBUG ===");
 // console.log("CLOUD_NAME:", process.env.CLOUDINARY_CLOUD_NAME);
 // console.log("API_KEY:", process.env.CLOUDINARY_API_KEY);
